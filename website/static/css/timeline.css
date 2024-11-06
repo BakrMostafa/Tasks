@@ -1,0 +1,24 @@
+@keyframes progress {
+    0% { width: 0; }
+    100% { width: v-bind('completion_percentage + "%"'); }
+}
+
+.timeline-progress {
+    animation: progress 1.5s ease-out forwards;
+}
+
+.timeline-point {
+    transition: all 0.3s ease;
+}
+
+.timeline-point.active {
+    transform: scale(1.5);
+}
+
+.task-card {
+    transition: all 0.3s ease;
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+} 

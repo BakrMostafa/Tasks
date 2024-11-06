@@ -1,0 +1,20 @@
+{% extends 'website/base.html' %}
+
+{% block header %}
+<header>
+    {% include 'website/header.html' %}
+</header>
+{% endblock %}
+
+{% block footer %}
+    {% include 'website/footer.html' %}
+{% endblock %}
+
+{% block head %}
+<head>
+    <!-- ... other head elements ... -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/timeline.css' %}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+{% endblock %}

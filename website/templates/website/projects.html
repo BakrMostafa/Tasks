@@ -1,0 +1,160 @@
+{% extends 'website/main.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <!-- Main Content -->
+    <main id="main-content" class="ml-16 p-4 transition-all duration-300">
+        <!-- Search and Header Section -->
+        <div class="mb-4">
+            <!-- Header with Stats -->
+            <div class="flex flex-wrap justify-between items-center gap-2">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Projects</h1>
+                    <p class="text-sm text-gray-600">Managing {{ projects.count }} projects</p>
+                </div>
+                <a href="{% url 'project_create' %}" 
+                   class="bg-blue-600 text-white px-4 py-1.5 text-sm rounded-lg hover:bg-blue-700 flex items-center gap-1">
+                    <span class="material-icons text-sm">add</span>
+                    Create New
+                </a>
+            </div>
+        </div>
+
+        <!-- Project Statistics -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+            <div class="bg-white rounded-lg shadow p-3 flex items-center gap-2">
+                <div class="bg-blue-100 p-2 rounded-lg">
+                    <span class="material-icons text-blue-600 text-sm">folder</span>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-600">Total Projects</p>
+                    <p class="text-lg font-bold">{{ projects.count }}</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-3 flex items-center gap-2">
+                <div class="bg-green-100 p-2 rounded-lg">
+                    <span class="material-icons text-green-600 text-sm">trending_up</span>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-600">Active Projects</p>
+                    <p class="text-lg font-bold">{{ active_projects_count }}</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-3 flex items-center gap-2">
+                <div class="bg-yellow-100 p-2 rounded-lg">
+                    <span class="material-icons text-yellow-600 text-sm">schedule</span>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-600">On Hold</p>
+                    <p class="text-lg font-bold">{{ on_hold_projects_count }}</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-3 flex items-center gap-2">
+                <div class="bg-purple-100 p-2 rounded-lg">
+                    <span class="material-icons text-purple-600 text-sm">task_alt</span>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-600">Completed</p>
+                    <p class="text-lg font-bold">{{ completed_projects_count }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {% for project in projects %}
+            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
+                <!-- Project Header -->
+                <div class="p-4 border-b">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="material-icons text-blue-600 text-xl">folder_special</span>
+                            <h3 class="text-lg font-semibold">{{ project.title }}</h3>
+                        </div>
+                        <span class="px-2 py-0.5 text-xs rounded-full
+                            {% if project.status == 'ACTIVE' %}bg-green-100 text-green-800
+                            {% elif project.status == 'ON_HOLD' %}bg-yellow-100 text-yellow-800
+                            {% elif project.status == 'COMPLETED' %}bg-blue-100 text-blue-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ project.get_status_display }}
+                        </span>
+                    </div>
+                    <p class="text-sm text-gray-600">{{ project.description|truncatechars:100 }}</p>
+                </div>
+
+                <!-- Project Stats -->
+                <div class="p-3 border-b">
+                    <div class="grid grid-cols-3 gap-2 text-sm">
+                        <div class="text-center">
+                            <p class="text-xs text-gray-600">Tasks</p>
+                            <p class="text-lg font-semibold">{{ project.tasks.count }}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xs text-gray-600">Complete</p>
+                            <p class="text-lg font-semibold">{{ project.completion_percentage }}%</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xs text-gray-600">Days Left</p>
+                            <p class="text-lg font-semibold">{{ project.days_remaining }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Members -->
+                <div class="p-3 border-b">
+                    <h4 class="text-xs font-medium text-gray-600 mb-2">Team Members</h4>
+                    <div class="flex -space-x-2 overflow-hidden">
+                        <a href="{% url 'profile' %}?user={{ project.owner.username }}" 
+                           class="hover:z-10 transition-transform hover:scale-110"
+                           title="{{ project.owner.get_full_name|default:project.owner.username }}">
+                            <img class="inline-block h-6 w-6 rounded-full ring-2 ring-white" 
+                                 src="{{ project.owner.profile.avatar.url }}" 
+                                 alt="{{ project.owner.username }}">
+                        </a>
+                        {% for collaborator in project.collaborators.all|slice:":4" %}
+                        <a href="{% url 'profile' %}?user={{ collaborator.username }}"
+                           class="hover:z-10 transition-transform hover:scale-110"
+                           title="{{ collaborator.get_full_name|default:collaborator.username }}">
+                            <img class="inline-block h-6 w-6 rounded-full ring-2 ring-white" 
+                                 src="{{ collaborator.profile.avatar.url }}" 
+                                 alt="{{ collaborator.username }}">
+                        </a>
+                        {% endfor %}
+                        {% if project.collaborators.count > 4 %}
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full ring-2 ring-white bg-gray-100 text-xs font-medium">
+                            +{{ project.collaborators.count|add:"-4" }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Project Actions -->
+                <div class="p-3 flex justify-between items-center text-sm">
+                    <div class="flex items-center gap-1 text-gray-600">
+                        <span class="material-icons text-sm">calendar_today</span>
+                        <span class="text-sm">{{ project.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    <a href="{% url 'project_detail' project.slug %}" 
+                       class="text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-all duration-200">
+                        View Details
+                        <span class="material-icons text-sm">arrow_forward</span>
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-3 bg-white rounded-lg shadow-md p-8 text-center">
+                <span class="material-icons text-gray-400 text-6xl mb-4">folder_off</span>
+                <p class="text-gray-500 mb-4">No projects found. Start by creating your first project!</p>
+                <a href="{% url 'project_create' %}" 
+                   class="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                    <span class="material-icons">add</span>
+                    Create New Project
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</div>
+{% endblock %} 

@@ -1,0 +1,62 @@
+version: "3.9"
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  postgres_data:
+  static:
+  media:
+
+services:
+  app:
+    restart: always
+    build: .
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - static:/static
+      - media:/media
+    container_name: Hyundai-App
+    environment:
+      - SQL_HOST=Hyundai-DB
+      - SQL_PORT=5432
+    depends_on:
+      - db
+    ports:
+      - "8081:8000"
+    networks:
+      - backend
+      - frontend
+  db:
+    restart: always
+    image: postgres:14
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - postgres_data:/var/lib/postgresql/data/
+    container_name: Hyundai-DB
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=postgrespw
+      - POSTGRES_USER=postgres
+    ports:
+      - "8080:5432"
+    networks:
+      - backend
+  nginx:
+    restart: always
+    image: ramy7elmygb/pcapi:nginx
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - static:/static
+      - media:/media
+    container_name: Hyundai-Nginx
+    ports:
+      - "8082:443"
+    depends_on:
+      - app
+    networks:
+      - frontend

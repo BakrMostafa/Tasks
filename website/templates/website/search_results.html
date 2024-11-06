@@ -1,0 +1,82 @@
+{% extends 'website/main.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Search Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Search Results</h1>
+            <p class="text-gray-600">Results for: "{{ query }}"</p>
+        </div>
+
+        <!-- Results Sections -->
+        {% if projects or tasks or notes or knowledge_base %}
+            <!-- Projects -->
+            {% if projects %}
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold mb-4">Projects</h2>
+                <div class="space-y-4">
+                    {% for project in projects %}
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <h3 class="font-semibold">{{ project.title }}</h3>
+                        <p class="text-gray-600">{{ project.description|truncatechars:200 }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Tasks -->
+            {% if tasks %}
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold mb-4">Tasks</h2>
+                <div class="space-y-4">
+                    {% for task in tasks %}
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <h3 class="font-semibold">{{ task.title }}</h3>
+                        <p class="text-gray-600">{{ task.description|truncatechars:200 }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Notes -->
+            {% if notes %}
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold mb-4">Notes</h2>
+                <div class="space-y-4">
+                    {% for note in notes %}
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <h3 class="font-semibold">{{ note.title }}</h3>
+                        <p class="text-gray-600">{{ note.content|truncatechars:200 }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Knowledge Base -->
+            {% if knowledge_base %}
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold mb-4">Knowledge Base</h2>
+                <div class="space-y-4">
+                    {% for article in knowledge_base %}
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <h3 class="font-semibold">{{ article.title }}</h3>
+                        <p class="text-gray-600">{{ article.content|truncatechars:200 }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-8">
+                <p class="text-gray-500">No results found for "{{ query }}"</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,59 @@
+{% extends 'website/main.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <!-- Main Content -->
+    <main id="main-content" class="ml-16 p-8 transition-all duration-300">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Knowledge Base</h1>
+            <a href="{% url 'knowledge_base_create' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                Add Article
+            </a>
+        </div>
+
+        <!-- Search -->
+        <form method="get" action="{% url 'knowledge' %}" class="mb-8">
+            <div class="relative">
+                <input type="text" 
+                       name="q"
+                       value="{{ request.GET.q }}"
+                       placeholder="Search knowledge base..." 
+                       class="w-full px-4 py-2 pl-10 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <span class="material-icons absolute left-3 top-2 text-gray-400">search</span>
+            </div>
+        </form>
+
+        <!-- Articles List -->
+        <div class="space-y-6">
+            {% for article in articles %}
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-2">{{ article.title }}</h2>
+                <p class="text-gray-600 mb-4">{{ article.content|truncatechars:300 }}</p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        {% for tag in article.tags.all %}
+                        <span class="px-2 py-1 text-sm bg-gray-100 rounded-full">{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <a href="{% url 'knowledge_base_detail' article.pk %}" 
+                           class="text-blue-600 hover:text-blue-800">View Details →</a>
+                        {% if request.user == article.author %}
+                        <a href="{% url 'knowledge_base_update' article.pk %}" 
+                           class="text-gray-600 hover:text-gray-800">Edit</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-8">
+                <p class="text-gray-500">No articles found. Create your first article!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</div>
+{% endblock %} 

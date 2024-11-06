@@ -1,0 +1,220 @@
+{% extends 'website/main.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">{% trans "Settings" %}</h1>
+        <div class="flex space-x-2">
+            <span class="text-gray-500">
+                <span class="material-icons">settings</span>
+            </span>
+        </div>
+    </div>
+    
+    <!-- Settings Navigation -->
+    <div class="flex space-x-4 mb-6 border-b border-gray-200">
+        <button class="tab-button px-4 py-2 focus:outline-none" data-tab="appearance">
+            <span class="material-icons align-middle mr-2">palette</span>
+            {% trans "Appearance" %}
+        </button>
+        <button class="tab-button px-4 py-2 focus:outline-none" data-tab="integrations">
+            <span class="material-icons align-middle mr-2">integration_instructions</span>
+            {% trans "Integrations" %}
+        </button>
+        <button class="tab-button px-4 py-2 focus:outline-none" data-tab="notifications">
+            <span class="material-icons align-middle mr-2">notifications</span>
+            {% trans "Notifications" %}
+        </button>
+    </div>
+
+    <!-- Success Message -->
+    {% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Appearance Settings -->
+    <div class="tab-content active" id="appearance">
+        <form method="POST" action="{% url 'appearance_settings' %}" class="space-y-6">
+            {% csrf_token %}
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold mb-4">{% trans "Theme Settings" %}</h2>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">{% trans "Application Theme" %}</label>
+                    <select name="theme" class="form-select">
+                        <option value="light" {% if appearance_settings.theme == 'light' %}selected{% endif %}>{% trans "Light" %}</option>
+                        <option value="dark" {% if appearance_settings.theme == 'dark' %}selected{% endif %}>{% trans "Dark" %}</option>
+                        <option value="system" {% if appearance_settings.theme == 'system' %}selected{% endif %}>{% trans "System Default" %}</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">{% trans "Code Theme" %}</label>
+                    <select name="code_theme" class="form-select">
+                        <option value="github" {% if appearance_settings.code_theme == 'github' %}selected{% endif %}>GitHub</option>
+                        <option value="monokai" {% if appearance_settings.code_theme == 'monokai' %}selected{% endif %}>Monokai</option>
+                        <option value="dracula" {% if appearance_settings.code_theme == 'dracula' %}selected{% endif %}>Dracula</option>
+                        <option value="solarized" {% if appearance_settings.code_theme == 'solarized' %}selected{% endif %}>Solarized</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="sidebar_collapsed" class="form-checkbox" {% if appearance_settings.sidebar_collapsed %}checked{% endif %}>
+                        <span class="ml-2">{% trans "Collapse sidebar by default" %}</span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">{% trans "Save Appearance Settings" %}</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Integrations Settings -->
+    <div class="tab-content hidden" id="integrations">
+        <div class="card p-6">
+            <h2 class="text-xl font-semibold mb-4">{% trans "External Integrations" %}</h2>
+            
+            <!-- GitHub Integration -->
+            <div class="mb-6">
+                <h3 class="text-lg font-medium mb-2">GitHub</h3>
+                <form method="POST" action="{% url 'integration_settings' %}" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="integration_type" value="github">
+                    <div class="flex items-center space-x-4">
+                        <input type="text" name="access_token" placeholder="GitHub Access Token" class="form-input flex-1">
+                        <button type="submit" class="btn {% if integration_tokens.github %}btn-warning{% else %}btn-primary{% endif %}">
+                            {% if integration_tokens.github %}
+                                {% trans "Update Token" %}
+                            {% else %}
+                                {% trans "Connect" %}
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- GitLab Integration -->
+            <div class="mb-6">
+                <h3 class="text-lg font-medium mb-2">GitLab</h3>
+                <form method="POST" action="{% url 'integration_settings' %}" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="integration_type" value="gitlab">
+                    <div class="flex items-center space-x-4">
+                        <input type="text" name="access_token" placeholder="GitLab Access Token" class="form-input flex-1">
+                        <button type="submit" class="btn {% if integration_tokens.gitlab %}btn-warning{% else %}btn-primary{% endif %}">
+                            {% if integration_tokens.gitlab %}
+                                {% trans "Update Token" %}
+                            {% else %}
+                                {% trans "Connect" %}
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Jira Integration -->
+            <div class="mb-6">
+                <h3 class="text-lg font-medium mb-2">Jira</h3>
+                <form method="POST" action="{% url 'integration_settings' %}" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="integration_type" value="jira">
+                    <div class="flex items-center space-x-4">
+                        <input type="text" name="access_token" placeholder="Jira API Token" class="form-input flex-1">
+                        <button type="submit" class="btn {% if integration_tokens.jira %}btn-warning{% else %}btn-primary{% endif %}">
+                            {% if integration_tokens.jira %}
+                                {% trans "Update Token" %}
+                            {% else %}
+                                {% trans "Connect" %}
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Settings -->
+    <div class="tab-content hidden" id="notifications">
+        <form method="POST" action="{% url 'notification_settings' %}" class="card p-6">
+            {% csrf_token %}
+            <h2 class="text-xl font-semibold mb-4">{% trans "Notification Preferences" %}</h2>
+            
+            <div class="space-y-4">
+                <label class="flex items-center">
+                    <input type="checkbox" name="email_notifications" class="form-checkbox" 
+                           {% if notification_settings.email_notifications %}checked{% endif %}>
+                    <span class="ml-2">{% trans "Email Notifications" %}</span>
+                </label>
+                
+                <label class="flex items-center">
+                    <input type="checkbox" name="desktop_notifications" class="form-checkbox"
+                           {% if notification_settings.desktop_notifications %}checked{% endif %}>
+                    <span class="ml-2">{% trans "Desktop Notifications" %}</span>
+                </label>
+                
+                <label class="flex items-center">
+                    <input type="checkbox" name="mention_notifications" class="form-checkbox"
+                           {% if notification_settings.mention_notifications %}checked{% endif %}>
+                    <span class="ml-2">{% trans "Mention Notifications" %}</span>
+                </label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary mt-4">{% trans "Save Notification Settings" %}</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    // Set active tab based on URL hash or default to appearance
+    const setActiveTab = (tabId) => {
+        tabButtons.forEach(button => {
+            if (button.dataset.tab === tabId) {
+                button.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+            } else {
+                button.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+            }
+        });
+
+        tabContents.forEach(content => {
+            if (content.id === tabId) {
+                content.classList.remove('hidden');
+            } else {
+                content.classList.add('hidden');
+            }
+        });
+    };
+
+    // Initialize active tab
+    const activeTab = window.location.hash.slice(1) || 'appearance';
+    setActiveTab(activeTab);
+
+    // Tab click handlers
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tabId = this.dataset.tab;
+            window.location.hash = tabId;
+            setActiveTab(tabId);
+        });
+    });
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', () => {
+        const tabId = window.location.hash.slice(1) || 'appearance';
+        setActiveTab(tabId);
+    });
+});
+</script>
+{% endblock %} 

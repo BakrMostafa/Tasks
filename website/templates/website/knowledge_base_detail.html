@@ -1,0 +1,49 @@
+{% extends 'website/main.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-md p-8">
+            <!-- Article Header -->
+            <div class="mb-8">
+                <div class="flex justify-between items-start">
+                    <h1 class="text-3xl font-bold text-gray-900">{{ article.title }}</h1>
+                    {% if request.user == article.author %}
+                    <div class="flex space-x-4">
+                        <a href="{% url 'knowledge_base_update' article.pk %}" 
+                           class="text-blue-600 hover:text-blue-800">Edit</a>
+                        <a href="{% url 'knowledge_base_delete' article.pk %}" 
+                           class="text-red-600 hover:text-red-800">Delete</a>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mt-4 flex items-center text-sm text-gray-500">
+                    <span>By {{ article.author.username }}</span>
+                    <span class="mx-2">•</span>
+                    <span>{{ article.created_at|date:"M d, Y" }}</span>
+                    {% if article.updated_at != article.created_at %}
+                    <span class="mx-2">•</span>
+                    <span>Updated {{ article.updated_at|date:"M d, Y" }}</span>
+                    {% endif %}
+                </div>
+
+                {% if article.tags.all %}
+                <div class="mt-4 flex flex-wrap gap-2">
+                    {% for tag in article.tags.all %}
+                    <span class="px-2 py-1 text-sm bg-gray-100 rounded-full">{{ tag.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Article Content -->
+            <div class="prose max-w-none">
+                {{ article.content|linebreaks }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

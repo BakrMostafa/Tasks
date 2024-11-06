@@ -1,0 +1,61 @@
+{% load static %}
+<!-- Sidebar -->
+<aside id="sidebar" class="fixed inset-y-0 left-0 w-16 bg-white shadow-lg">
+    <!-- Profile Section -->
+    <div class="p-4 border-b flex justify-center">
+        <a href="{% url 'profile' %}" class="block">
+            {% if request.user.profile.avatar %}
+                <div class="w-10 h-10">
+                    <img src="{{ request.user.profile.avatar.url }}" class="w-full h-full rounded-full object-cover" alt="Profile">
+                </div>
+            {% else %}
+                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span class="material-icons text-gray-500">person</span>
+                </div>
+            {% endif %}
+        </a>
+    </div>
+
+    <div class="p-2">
+        <!-- Navigation -->
+        <nav class="mt-8 space-y-2">
+            <a href="{% url 'dashboard' %}" title="Dashboard" class="flex items-center justify-center p-2 rounded-lg {% if request.resolver_match.url_name == 'dashboard' %}bg-blue-50 text-blue-600{% else %}hover:bg-gray-100{% endif %}">
+                <span class="material-icons">dashboard</span>
+            </a>
+            <a href="{% url 'projects' %}" title="Projects" class="flex items-center justify-center p-2 rounded-lg {% if request.resolver_match.url_name == 'projects' %}bg-blue-50 text-blue-600{% else %}hover:bg-gray-100{% endif %}">
+                <span class="material-icons">folder</span>
+            </a>
+            <a href="{% url 'tasks' %}" title="Tasks" class="flex items-center justify-center p-2 rounded-lg {% if request.resolver_match.url_name == 'tasks' %}bg-blue-50 text-blue-600{% else %}hover:bg-gray-100{% endif %}">
+                <span class="material-icons">task_alt</span>
+            </a>
+            <a href="{% url 'notes' %}" title="Notes" class="flex items-center justify-center p-2 rounded-lg {% if request.resolver_match.url_name == 'notes' %}bg-blue-50 text-blue-600{% else %}hover:bg-gray-100{% endif %}">
+                <span class="material-icons">note</span>
+            </a>
+            <a href="{% url 'knowledge' %}" title="Knowledge Base" class="flex items-center justify-center p-2 rounded-lg {% if request.resolver_match.url_name == 'knowledge' %}bg-blue-50 text-blue-600{% else %}hover:bg-gray-100{% endif %}">
+                <span class="material-icons">school</span>
+            </a>
+        </nav>
+
+        <!-- User Actions -->
+        <div class="mt-auto pt-4 border-t">
+            <a href="{% url 'settings' %}" title="Settings" class="flex items-center justify-center p-2 rounded-lg hover:bg-gray-100">
+                <span class="material-icons">settings</span>
+            </a>
+            <form method="POST" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" title="Logout" class="w-full flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 text-red-600">
+                    <span class="material-icons">logout</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</aside>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.classList.add('ml-16');
+        }
+    });
+</script> 

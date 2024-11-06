@@ -1,0 +1,26 @@
+<div class="space-y-1">
+    <label for="{{ field.id_for_label }}" class="block text-xs font-medium text-gray-700">
+        {{ field.label }}
+    </label>
+    
+    <div class="flex items-center">
+        {% if field.field.widget.input_type == 'url' %}
+            <span class="material-icons text-gray-400 text-sm mr-1">link</span>
+        {% elif field.field.widget.input_type == 'text' %}
+            <span class="material-icons text-gray-400 text-sm mr-1">description</span>
+        {% elif field.field.widget.input_type == 'select' %}
+            <span class="material-icons text-gray-400 text-sm mr-1">group</span>
+        {% endif %}
+        {{ field }}
+    </div>
+
+    {% if field.help_text %}
+    <p class="text-xs text-gray-500">{{ field.help_text }}</p>
+    {% endif %}
+
+    {% if field.errors %}
+    <div class="text-red-600 text-xs">
+        {{ field.errors }}
+    </div>
+    {% endif %}
+</div> 

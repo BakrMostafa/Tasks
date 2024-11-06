@@ -1,0 +1,255 @@
+{% extends 'website/main.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <main id="main-content" class="ml-16 p-4 transition-all duration-300">
+        <div class="max-w-7xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md p-4">
+                <!-- Profile Header - Made more compact -->
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="relative group">
+                            <label for="avatar-upload" class="cursor-pointer block w-16 h-16">
+                                {% if request.user.profile.avatar %}
+                                    <img src="{{ request.user.profile.avatar.url }}" class="w-16 h-16 rounded-full object-cover" alt="Profile">
+                                {% else %}
+                                    <div class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                                        <span class="material-icons text-gray-500 text-3xl">person</span>
+                                    </div>
+                                {% endif %}
+                                <div class="absolute inset-0 flex items-center justify-center rounded-full bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span class="material-icons text-white text-sm">photo_camera</span>
+                                </div>
+                            </label>
+                            <input type="file" id="avatar-upload" name="avatar" accept="image/*" class="hidden" onchange="document.getElementById('profile-form').submit()">
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold">{{ request.user.get_full_name }}</h2>
+                            <p class="text-sm text-gray-600">{{ request.user.email }}</p>
+                            <p class="text-sm text-gray-500">{{ request.user.profile.job_title }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Performance & Activity Stats with equal widths -->
+                    <div class="flex space-x-3 bg-gray-50 rounded-lg p-2 border border-gray-200">
+                        <!-- Projects Stats -->
+                        <div class="w-44 px-3 border-r border-gray-200">
+                            <div class="flex items-center gap-1.5">
+                                <span class="material-icons text-blue-500 text-sm">folder</span>
+                                <div>
+                                    <div class="text-xl font-bold text-blue-600">{{ project_stats.total }}</div>
+                                    <div class="text-xs font-medium text-gray-600">{% trans "Projects" %}</div>
+                                    <div class="text-[10px] text-gray-500">
+                                        <span class="inline-flex items-center">
+                                            <span class="material-icons text-green-500 text-[10px] mr-0.5">radio_button_checked</span>
+                                            {{ project_stats.active }} {% trans "active" %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tasks Stats -->
+                        <div class="w-44 px-3 border-r border-gray-200">
+                            <div class="flex items-center gap-1.5">
+                                <span class="material-icons text-green-500 text-sm">task_alt</span>
+                                <div>
+                                    <div class="text-xl font-bold text-green-600">{{ task_stats.completion_rate }}%</div>
+                                    <div class="text-xs font-medium text-gray-600">{% trans "Completion Rate" %}</div>
+                                    <div class="text-[10px] text-gray-500">
+                                        {{ task_stats.completed }}/{{ task_stats.total }} {% trans "tasks" %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- On-Time Rate -->
+                        <div class="w-44 px-3">
+                            <div class="flex items-center gap-1.5">
+                                <span class="material-icons text-purple-500 text-sm">schedule</span>
+                                <div>
+                                    <div class="text-xl font-bold text-purple-600">{{ task_stats.on_time_rate }}%</div>
+                                    <div class="text-xs font-medium text-gray-600">{% trans "On-Time Rate" %}</div>
+                                    <div class="text-[10px] text-gray-500">{% trans "deliveries" %}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Move the save button inside the form and fix its type -->
+                    <button type="submit" form="profile-form" class="bg-blue-600 text-white px-4 py-2 text-sm rounded-lg hover:bg-blue-700 flex items-center gap-1 transition-all duration-300">
+                        <span class="material-icons text-sm">save</span>
+                        <span class="sidebar-expanded:hidden">{% trans "Save Changes" %}</span>
+                    </button>
+                </div>
+
+                <!-- Profile Form -->
+                <form method="POST" enctype="multipart/form-data" id="profile-form">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-1">
+                        <!-- Personal Information -->
+                        <div class="bg-white p-4 rounded-lg border border-gray-100">
+                            <h3 class="text-sm font-semibold text-gray-700 border-b pb-2 mb-4 flex items-center">
+                                <span class="material-icons text-gray-500 mr-2 text-sm">person</span>
+                                {% trans "Personal Information" %}
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="w-full">
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">{% trans "First Name" %}</label>
+                                        <div class="flex items-center h-9">
+                                            <span class="material-icons text-gray-400 text-sm mr-1">badge</span>
+                                            <input type="text" name="first_name" value="{{ request.user.first_name }}" readonly
+                                                   class="w-full text-sm rounded-md bg-gray-50 border-gray-300 shadow-sm">
+                                        </div>
+                                    </div>
+                                    <div class="w-full">
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">{% trans "Last Name" %}</label>
+                                        <div class="flex items-center h-9">
+                                            <span class="material-icons text-gray-400 text-sm mr-1">badge</span>
+                                            <input type="text" name="last_name" value="{{ request.user.last_name }}" readonly
+                                                   class="w-full text-sm rounded-md bg-gray-50 border-gray-300 shadow-sm">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">{% trans "Email" %}</label>
+                                    <div class="flex items-center h-9">
+                                        <span class="material-icons text-gray-400 text-sm mr-1">email</span>
+                                        <input type="email" name="email" value="{{ request.user.email }}" readonly
+                                               class="w-full text-sm rounded-md bg-gray-50 border-gray-300 shadow-sm">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">{% trans "Employee ID" %}</label>
+                                    <div class="flex items-center h-9">
+                                        <span class="material-icons text-gray-400 text-sm mr-1">fingerprint</span>
+                                        <input type="text" name="employee_id" value="{{ request.user.profile.employee_id }}" readonly
+                                               class="w-full text-sm rounded-md bg-gray-50 border-gray-300 shadow-sm">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Professional Information -->
+                        <div class="bg-white p-4 rounded-lg border border-gray-100">
+                            <h3 class="text-sm font-semibold text-gray-700 border-b pb-2 mb-4 flex items-center">
+                                <span class="material-icons text-gray-500 mr-2 text-sm">work</span>
+                                {% trans "Professional Information" %}
+                            </h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">{% trans "Role Type" %}</label>
+                                    <div class="flex items-center h-9">
+                                        <span class="material-icons text-gray-400 text-sm mr-1">engineering</span>
+                                        <select name="user_type" disabled
+                                                class="w-full text-sm rounded-md bg-gray-50 border-gray-300 shadow-sm h-full py-0 pl-2">
+                                            {% for value, label in request.user.profile.USER_TYPE_CHOICES %}
+                                                <option value="{{ value }}" {% if request.user.profile.user_type == value %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">{% trans "Job Title" %}</label>
+                                    <div class="flex items-center h-9">
+                                        <span class="material-icons text-gray-400 text-sm mr-1">business_center</span>
+                                        <input type="text" name="job_title" value="{{ request.user.profile.job_title }}" readonly
+                                               class="w-full text-sm rounded-md bg-gray-50 border-gray-300 shadow-sm">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">{% trans "Department" %}</label>
+                                    <div class="flex items-center h-9">
+                                        <span class="material-icons text-gray-400 text-sm mr-1">domain</span>
+                                        <input type="text" name="department" value="{{ request.user.profile.department }}" readonly
+                                               class="w-full text-sm rounded-md bg-gray-50 border-gray-300 shadow-sm">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact & Links -->
+                        <div class="bg-white p-4 rounded-lg border border-gray-100">
+                            <h3 class="text-sm font-semibold text-gray-700 border-b pb-2 mb-4 flex items-center">
+                                <span class="material-icons text-gray-500 mr-2 text-sm">contact_phone</span>
+                                {% trans "Contact & Links" %}
+                            </h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">{% trans "Mobile Phone" %}</label>
+                                    <div class="flex items-center h-9">
+                                        <span class="material-icons text-gray-400 text-sm mr-1">smartphone</span>
+                                        <input type="tel" name="mobile_phone" value="{{ request.user.profile.mobile_phone }}"
+                                               class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">{% trans "GitHub Username" %}</label>
+                                    <div class="flex items-center h-9">
+                                        <span class="material-icons text-gray-400 text-sm mr-1">code</span>
+                                        <input type="text" name="github_username" value="{{ request.user.profile.github_username }}" readonly
+                                               class="w-full text-sm rounded-md bg-gray-50 border-gray-300 shadow-sm">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">{% trans "LinkedIn Profile" %}</label>
+                                    <div class="flex items-center h-9">
+                                        <span class="material-icons text-gray-400 text-sm mr-1">link</span>
+                                        <input type="url" name="linkedin_profile" value="{{ request.user.profile.linkedin_profile }}"
+                                               class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Skills Section - Minimal spacing -->
+                    <div class="bg-white p-3 rounded-lg border border-gray-100 mt-0">
+                        <h3 class="text-sm font-semibold text-gray-700 border-b pb-0.5 mb-0.5 flex items-center">
+                            <span class="material-icons text-gray-500 mr-2 text-sm">psychology</span>
+                            {% trans "Skills & Expertise" %}
+                        </h3>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">{% trans "Primary Skills" %}</label>
+                            <div class="flex items-start">
+                                <span class="material-icons text-gray-400 text-sm mr-1 mt-2">stars</span>
+                                <textarea name="primary_skills" rows="2"
+                                        class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ request.user.profile.primary_skills }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const saveButton = document.querySelector('[form="profile-form"]');
+        const sidebar = document.getElementById('sidebar');
+
+        // Initial check
+        updateSaveButton();
+
+        // Watch for sidebar width changes
+        const observer = new ResizeObserver(() => {
+            updateSaveButton();
+        });
+        observer.observe(sidebar);
+
+        function updateSaveButton() {
+            if (sidebar.classList.contains('w-64')) {
+                saveButton.classList.remove('px-4');
+                saveButton.classList.add('p-2');
+            } else {
+                saveButton.classList.add('px-4');
+                saveButton.classList.remove('p-2');
+            }
+        }
+    });
+</script>
+{% endblock %} 

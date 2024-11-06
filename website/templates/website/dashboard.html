@@ -1,0 +1,70 @@
+{% extends 'website/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <!-- Main Content -->
+    <main id="main-content" class="ml-16 p-8 transition-all duration-300">
+        <!-- Search Bar -->
+        <div class="mb-8">
+            <div class="relative">
+                <input type="text" 
+                       class="w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none focus:border-blue-500"
+                       placeholder="Global Search...">
+                <span class="material-icons absolute left-3 top-2 text-gray-400">search</span>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-300">
+            <!-- Recent Projects -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-4">Recent Projects</h2>
+                <div class="space-y-4">
+                    {% for project in recent_projects %}
+                    <div class="p-4 border rounded-lg hover:bg-gray-50">
+                        <h3 class="font-semibold">{{ project.title }}</h3>
+                        <p class="text-sm text-gray-600">{{ project.description|truncatechars:100 }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Tasks Due Soon -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-4">Tasks Due Soon</h2>
+                <div class="space-y-4">
+                    {% for task in upcoming_tasks %}
+                    <div class="p-4 border rounded-lg hover:bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-semibold">{{ task.title }}</h3>
+                            <span class="px-2 py-1 text-sm rounded-full 
+                                       {% if task.priority == 'HIGH' %}bg-red-100 text-red-800
+                                       {% elif task.priority == 'MEDIUM' %}bg-yellow-100 text-yellow-800
+                                       {% else %}bg-green-100 text-green-800{% endif %}">
+                                {{ task.priority }}
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-2">Due: {{ task.due_date|date:"M d, Y" }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recent Notes -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-4">Recent Notes</h2>
+                <div class="space-y-4">
+                    {% for note in recent_notes %}
+                    <div class="p-4 border rounded-lg hover:bg-gray-50">
+                        <h3 class="font-semibold">{{ note.title }}</h3>
+                        <p class="text-sm text-gray-600">{{ note.content|truncatechars:100 }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %} 

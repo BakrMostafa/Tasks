@@ -1,0 +1,192 @@
+{% extends 'website/main.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <main id="main-content" class="ml-16 p-4 transition-all duration-300">
+        <div class="max-w-4xl mx-auto">
+            <!-- Form Card -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <!-- Header -->
+                <div class="bg-white border-b px-6 py-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                            <span class="material-icons mr-2 text-blue-600">
+                                {% if action == 'Create' %}
+                                    add_circle
+                                {% else %}
+                                    edit
+                                {% endif %}
+                            </span>
+                            {% if action == 'Create' %}
+                                {% trans "Create New Project" %}
+                            {% else %}
+                                {% trans "Edit Project" %}
+                            {% endif %}
+                        </h2>
+                        <div class="flex space-x-3">
+                            <a href="{% url 'projects' %}" 
+                               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <span class="material-icons text-sm mr-2">arrow_back</span>
+                                {% trans "Cancel" %}
+                            </a>
+                            <button type="submit" form="project-form"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <span class="material-icons text-sm mr-2">save</span>
+                                {% if action == 'Create' %}
+                                    {% trans "Create Project" %}
+                                {% else %}
+                                    {% trans "Save Changes" %}
+                                {% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Content -->
+                <form method="post" class="p-6" id="project-form">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                        <div class="flex items-center">
+                            <span class="material-icons text-red-500 mr-2">error</span>
+                            <div class="text-red-700">{{ form.non_field_errors }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Grid Layout -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Left Column -->
+                        <div class="space-y-6">
+                            <!-- Basic Information -->
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                                    <span class="material-icons mr-2 text-blue-600">info</span>
+                                    {% trans "Basic Information" %}
+                                </h3>
+                                {% for field in form %}
+                                    {% if field.name in 'title,description' %}
+                                        <div class="mb-4">
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                {{ field.label }}
+                                            </label>
+                                            {{ field }}
+                                            {% if field.errors %}
+                                                <p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            <!-- Status Section -->
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                                    <span class="material-icons mr-2 text-blue-600">flag</span>
+                                    {% trans "Project Status" %}
+                                </h3>
+                                {% for field in form %}
+                                    {% if field.name in 'status' %}
+                                        <div class="mb-4">
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                {{ field.label }}
+                                            </label>
+                                            {{ field }}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="space-y-6">
+                            <!-- Team Section -->
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                                    <span class="material-icons mr-2 text-blue-600">group</span>
+                                    {% trans "Team Members" %}
+                                </h3>
+                                {% for field in form %}
+                                    {% if field.name in 'collaborators' %}
+                                        <div class="mb-4">
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                {{ field.label }}
+                                            </label>
+                                            {{ field }}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            <!-- GitHub Integration -->
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                                    <span class="material-icons mr-2 text-blue-600">code</span>
+                                    {% trans "GitHub Integration" %}
+                                </h3>
+                                {% for field in form %}
+                                    {% if field.name in 'github_repo,github_branch,github_organization,github_project_name' %}
+                                        <div class="mb-4">
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                {{ field.label }}
+                                            </label>
+                                            {{ field }}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+    /* Form Controls */
+    form input[type="text"],
+    form input[type="url"],
+    form textarea,
+    form select {
+        @apply w-full px-3 py-2 text-sm border border-gray-300 rounded-lg shadow-sm;
+        @apply focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+        @apply placeholder-gray-400;
+        @apply disabled:bg-gray-100 disabled:cursor-not-allowed;
+    }
+
+    /* Textarea specific styles */
+    form textarea {
+        @apply h-32 resize-none;
+    }
+
+    /* Multiple select styling */
+    form select[multiple] {
+        @apply h-32;
+    }
+
+    /* Custom checkbox styles */
+    form input[type="checkbox"] {
+        @apply rounded border-gray-300 text-blue-600 shadow-sm;
+        @apply focus:border-blue-500 focus:ring-blue-500;
+    }
+
+    /* Label styles */
+    form label {
+        @apply block text-sm font-medium text-gray-700 mb-1;
+    }
+
+    /* Help text */
+    form .helptext {
+        @apply mt-1 text-sm text-gray-500;
+    }
+
+    /* Error messages */
+    form .errorlist {
+        @apply mt-1 text-sm text-red-600;
+    }
+</style>
+{% endblock %} 

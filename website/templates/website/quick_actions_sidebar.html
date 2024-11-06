@@ -1,0 +1,477 @@
+{% load static %}
+<aside id="quick-actions-sidebar" class="fixed right-0 top-0 h-screen w-14 bg-white shadow-lg z-50">
+    <!-- Sidebar Content Container -->
+    <div class="flex flex-col h-full">
+        <!-- Header -->
+        <div class="h-14 flex items-center justify-center border-b border-gray-100">
+            <span class="material-icons text-xl text-blue-600">bolt</span>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto">
+            <!-- Action Buttons Section -->
+            <div class="flex flex-col items-center py-1">
+                <!-- Add Task -->
+                <button onclick="showAddTask()"
+                        class="w-10 h-10 mb-1 flex items-center justify-center rounded-lg hover:bg-blue-50 transition-all relative group">
+                    <span class="material-icons text-blue-600">add_task</span>
+                    <span class="absolute left-12 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible whitespace-nowrap">Add Task</span>
+                </button>
+
+                <!-- Add Note -->
+                <button onclick="showAddNote()"
+                        class="w-10 h-10 mb-1 flex items-center justify-center rounded-lg hover:bg-green-50 transition-all relative group">
+                    <span class="material-icons text-green-600">note_add</span>
+                    <span class="absolute left-12 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible whitespace-nowrap">Add Note</span>
+                </button>
+
+                <!-- Upload File -->
+                <button onclick="showFileUpload()"
+                        class="w-10 h-10 mb-1 flex items-center justify-center rounded-lg hover:bg-purple-50 transition-all relative group">
+                    <span class="material-icons text-purple-600">upload_file</span>
+                    <span class="absolute left-12 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible whitespace-nowrap">Upload File</span>
+                </button>
+            </div>
+
+            <!-- Divider -->
+            <div class="border-t border-gray-100 my-1 mx-2"></div>
+
+            <!-- Project Status -->
+            <div class="flex flex-col items-center py-1">
+                <button onclick="toggleProjectStatus()" 
+                        class="w-10 h-10 mb-1 flex items-center justify-center rounded-lg hover:bg-gray-50 transition-all relative group">
+                    <span class="material-icons text-gray-600">flag</span>
+                    <span class="absolute left-12 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible whitespace-nowrap">Project Status</span>
+                </button>
+            </div>
+
+            <!-- Divider -->
+            <div class="border-t border-gray-100 my-1 mx-2"></div>
+
+            <!-- Project Actions (New Section) -->
+            {% if request.user == project.owner %}
+            <div class="flex flex-col items-center py-1">
+                <!-- Edit Project -->
+                <button onclick="showEditProject()"
+                        class="w-10 h-10 mb-1 flex items-center justify-center rounded-lg hover:bg-blue-50 transition-all relative group">
+                    <span class="material-icons text-blue-600">edit</span>
+                    <span class="absolute left-12 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible whitespace-nowrap">Edit Project</span>
+                </button>
+
+                <!-- Delete Project -->
+                <button onclick="showDeleteProject()"
+                        class="w-10 h-10 mb-1 flex items-center justify-center rounded-lg hover:bg-red-50 transition-all relative group">
+                    <span class="material-icons text-red-600">delete</span>
+                    <span class="absolute left-12 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible whitespace-nowrap">Delete Project</span>
+                </button>
+            </div>
+
+            <!-- Divider -->
+            <div class="border-t border-gray-100 my-1 mx-2"></div>
+            {% endif %}
+
+            <!-- Task Progress and Chat -->
+            <div class="flex flex-col items-center py-1">
+                <button onclick="showTaskProgress()"
+                        class="w-10 h-10 mb-1 flex items-center justify-center rounded-lg hover:bg-gray-50 transition-all relative group">
+                    <span class="material-icons text-gray-600">analytics</span>
+                    <span class="absolute left-12 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible whitespace-nowrap">Task Progress</span>
+                </button>
+
+                <button onclick="toggleChat()"
+                        class="w-10 h-10 mb-1 flex items-center justify-center rounded-lg hover:bg-blue-50 transition-all relative group">
+                    <span class="material-icons text-blue-600">chat</span>
+                    <span class="absolute left-12 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible whitespace-nowrap">Project Chat</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Remove the chat button from the bottom -->
+        <div class="mt-auto border-t border-gray-100">
+        </div>
+    </div>
+</aside>
+
+<!-- Add this modal container at the end of the file, before the script tag -->
+<div id="modal-container" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold" id="modal-title"></h3>
+            <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div id="modal-content"></div>
+    </div>
+</div>
+
+<!-- Chat Popup -->
+<div id="chat-popup" class="hidden fixed bottom-4 right-20 w-96 bg-white rounded-lg shadow-xl z-50">
+    <!-- Chat Header -->
+    <div class="flex justify-between items-center p-4 border-b bg-blue-600 text-white rounded-t-lg">
+        <h3 class="font-medium">Project Chat</h3>
+        <button onclick="toggleChat()" class="hover:text-gray-200">
+            <span class="material-icons">close</span>
+        </button>
+    </div>
+
+    <!-- Chat Messages -->
+    <div id="project-chat-messages" class="h-96 overflow-y-auto p-4 space-y-4">
+        <!-- Messages will be loaded here -->
+    </div>
+
+    <!-- Message Input -->
+    <div class="border-t p-4">
+        <form id="project-chat-form" class="space-y-2">
+            {% csrf_token %}
+            <div class="flex items-center space-x-2">
+                <input type="text" name="content" 
+                       class="flex-1 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                       placeholder="Type your message...">
+                <!-- Downsized attachment button -->
+                <button type="button" onclick="document.getElementById('chat-attachment').click()" 
+                        class="text-gray-600 hover:text-gray-800 p-1.5 rounded-lg hover:bg-gray-100">
+                    <span class="material-icons text-sm">attach_file</span>
+                </button>
+                <!-- Downsized send button -->
+                <button type="submit" 
+                        class="bg-blue-600 text-white p-1.5 rounded-lg hover:bg-blue-700">
+                    <span class="material-icons text-sm">send</span>
+                </button>
+            </div>
+            <input type="hidden" name="project_slug" value="{{ project.slug }}">
+            
+            <!-- File attachment preview -->
+            <div id="chat-attachment-preview" class="hidden mt-2">
+                <div class="flex items-center space-x-2 bg-gray-100 p-2 rounded">
+                    <span class="material-icons text-sm">attach_file</span>
+                    <span id="chat-attachment-name" class="text-sm text-gray-600"></span>
+                    <button type="button" onclick="removeChatAttachment()" 
+                            class="text-red-600 hover:text-red-700">
+                        <span class="material-icons text-sm">close</span>
+                    </button>
+                </div>
+            </div>
+
+            <input type="file" id="chat-attachment" name="attachment" 
+                   accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                   class="hidden" onchange="handleChatFileSelect(this)">
+        </form>
+    </div>
+</div>
+
+<script>
+    const projectSlug = "{{ project.slug }}";
+
+    function showModal(title, content) {
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-content').innerHTML = content;
+        document.getElementById('modal-container').classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('modal-container').classList.add('hidden');
+    }
+
+    function toggleProjectStatus() {
+        const content = `
+            <div class="space-y-4">
+                <div class="flex items-center space-x-2">
+                    <select class="form-select rounded-md border-gray-300 w-full px-3 py-2">
+                        <option value="PLANNING">&nbsp;&nbsp;Planning</option>
+                        <option value="ACTIVE">&nbsp;&nbsp;Active</option>
+                        <option value="ON_HOLD">&nbsp;&nbsp;On Hold</option>
+                        <option value="LEFT_PENDING">&nbsp;&nbsp;Left Pending</option>
+                        <option value="COMPLETED">&nbsp;&nbsp;Completed</option>
+                        <option value="ARCHIVED">&nbsp;&nbsp;Archived</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300" onclick="closeModal()">Cancel</button>
+                    <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
+                </div>
+            </div>
+        `;
+        showModal('Update Project Status', content);
+    }
+
+    function showTaskProgress() {
+        const content = `
+            <div class="space-y-4">
+                <div class="bg-gray-100 rounded-lg p-4">
+                    <div class="mb-2">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">Overall Progress</span>
+                            <span class="text-sm font-medium">75%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: 75%"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm">To Do</span>
+                            <span class="text-sm">5</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm">In Progress</span>
+                            <span class="text-sm">3</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm">Completed</span>
+                            <span class="text-sm">12</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300" onclick="closeModal()">Close</button>
+                </div>
+            </div>
+        `;
+        showModal('Task Progress', content);
+    }
+
+    function showAddTask() {
+        const content = `
+            <form action="{% url 'task_create' %}" method="POST" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="project" value="{{ project.slug }}">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Title</label>
+                    <input type="text" name="title" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea name="description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></textarea>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Create Task</button>
+                </div>
+            </form>
+        `;
+        showModal('Create New Task', content);
+    }
+
+    function showAddNote() {
+        const content = `
+            <form action="{% url 'note_create' %}" method="POST" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="project" value="{{ project.slug }}">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Title</label>
+                    <input type="text" name="title" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Content</label>
+                    <textarea name="content" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></textarea>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Create Note</button>
+                </div>
+            </form>
+        `;
+        showModal('Create New Note', content);
+    }
+
+    function showFileUpload() {
+        const content = `
+            <form action="/upload-file/" method="POST" enctype="multipart/form-data" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="project" value="{{ project.slug }}">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Select Files</label>
+                    <input type="file" name="files" multiple 
+                           class="mt-1 block w-full text-sm text-gray-500
+                                  file:mr-4 file:py-2 file:px-4
+                                  file:rounded-md file:border-0
+                                  file:text-sm file:font-semibold
+                                  file:bg-purple-50 file:text-purple-600
+                                  hover:file:bg-purple-100">
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">Upload Files</button>
+                </div>
+            </form>
+        `;
+        showModal('Upload Files', content);
+    }
+
+    function showEditProject() {
+        const content = `
+            <form action="{% url 'project_update' project.slug %}" method="POST" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Title</label>
+                    <input type="text" name="title" value="{{ project.title }}" 
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea name="description" rows="3" 
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">{{ project.description }}</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Status</label>
+                    <select name="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                        <option value="PLANNING" {% if project.status == 'PLANNING' %}selected{% endif %}>Planning</option>
+                        <option value="ACTIVE" {% if project.status == 'ACTIVE' %}selected{% endif %}>Active</option>
+                        <option value="ON_HOLD" {% if project.status == 'ON_HOLD' %}selected{% endif %}>On Hold</option>
+                        <option value="LEFT_PENDING" {% if project.status == 'LEFT_PENDING' %}selected{% endif %}>Left Pending</option>
+                        <option value="COMPLETED" {% if project.status == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                        <option value="ARCHIVED" {% if project.status == 'ARCHIVED' %}selected{% endif %}>Archived</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Update Project</button>
+                </div>
+            </form>
+        `;
+        showModal('Edit Project', content);
+    }
+
+    function showDeleteProject() {
+        const content = `
+            <div class="text-center">
+                <div class="mb-6">
+                    <span class="material-icons text-red-600 text-5xl">warning</span>
+                    <p class="text-gray-600 mt-4">Are you sure you want to delete the project:</p>
+                    <p class="font-semibold text-gray-800 mt-2">"{{ project.title }}"?</p>
+                    <p class="text-sm text-red-600 mt-4">This action cannot be undone.</p>
+                </div>
+                <form action="{% url 'project_delete' project.slug %}" method="POST" class="space-y-4">
+                    {% csrf_token %}
+                    <div class="flex justify-center space-x-4">
+                        <button type="button" class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300" onclick="closeModal()">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Delete Project</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        showModal('Delete Project', content);
+    }
+
+    // Adjust main content margin
+    document.addEventListener('DOMContentLoaded', function() {
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.classList.add('mr-14');
+        }
+    });
+
+    function toggleChat() {
+        const chatPopup = document.getElementById('chat-popup');
+        if (chatPopup.classList.contains('hidden')) {
+            chatPopup.classList.remove('hidden');
+            loadMessages();
+        } else {
+            chatPopup.classList.add('hidden');
+        }
+    }
+
+    function loadMessages() {
+        const projectChatMessages = document.getElementById('project-chat-messages');
+        fetch(`/project/${projectSlug}/chat/`)
+            .then(response => response.json())
+            .then(data => {
+                projectChatMessages.innerHTML = data.messages.map(message => {
+                    let attachmentHtml = '';
+                    if (message.attachment) {
+                        if (message.attachment_type === 'IMAGE') {
+                            attachmentHtml = `
+                                <div class="mt-2">
+                                    <img src="${message.attachment_url}" 
+                                         alt="Attached image" 
+                                         class="rounded-lg max-w-[200px] cursor-pointer hover:opacity-90"
+                                         onclick="openImagePreview('${message.attachment_url}')">
+                                </div>`;
+                        } else if (message.attachment_type === 'VIDEO') {
+                            attachmentHtml = `
+                                <div class="mt-2">
+                                    <video controls class="rounded-lg max-w-[200px]">
+                                        <source src="${message.attachment_url}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>`;
+                        } else {
+                            const fileIcon = getFileIcon(message.attachment_name);
+                            attachmentHtml = `
+                                <a href="${message.attachment_url}" 
+                                   target="_blank" 
+                                   class="mt-2 flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800">
+                                    <span class="material-icons text-sm">${fileIcon}</span>
+                                    <span>${message.attachment_name}</span>
+                                </a>`;
+                        }
+                    }
+
+                    return `
+                        <div class="flex ${message.is_own ? 'justify-end' : 'justify-start'} mb-4">
+                            <div class="${message.is_own ? 
+                                'bg-blue-600 text-white' : 
+                                'bg-gray-200 text-gray-800'} 
+                                rounded-lg px-3 py-2 max-w-[70%]">
+                                ${!message.is_own ? 
+                                    `<p class="text-xs ${message.is_own ? 'text-blue-200' : 'text-gray-600'} mb-1">
+                                        ${message.sender}
+                                    </p>` : ''}
+                                <p class="text-sm">${message.content}</p>
+                                ${attachmentHtml}
+                                <p class="text-xs ${message.is_own ? 'text-blue-200' : 'text-gray-500'} mt-1">
+                                    ${message.created_at}
+                                </p>
+                            </div>
+                        </div>`;
+                }).join('');
+                projectChatMessages.scrollTop = projectChatMessages.scrollHeight;
+            });
+    }
+
+    // Update the form submission handler
+    document.addEventListener('DOMContentLoaded', function() {
+        const projectChatForm = document.getElementById('project-chat-form');
+        if (projectChatForm) {
+            projectChatForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(projectChatForm);
+                formData.append('project_slug', projectSlug);
+                
+                fetch('{% url "send_message" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        loadMessages();
+                        projectChatForm.reset();
+                        document.getElementById('chat-attachment-preview').classList.add('hidden');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        }
+    });
+
+    function handleChatFileSelect(input) {
+        const file = input.files[0];
+        if (file) {
+            document.getElementById('chat-attachment-name').textContent = file.name;
+            document.getElementById('chat-attachment-preview').classList.remove('hidden');
+        }
+    }
+
+    function removeChatAttachment() {
+        document.getElementById('chat-attachment').value = '';
+        document.getElementById('chat-attachment-preview').classList.add('hidden');
+    }
+</script> 

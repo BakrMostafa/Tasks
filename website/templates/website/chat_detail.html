@@ -1,0 +1,275 @@
+{% extends 'website/main.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-md">
+            <!-- Chat Header -->
+            <div class="border-b p-4 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    {% if chat_type == 'direct' %}
+                        <img src="{{ other_user.profile.avatar.url }}" alt="{{ other_user.username }}" 
+                             class="w-10 h-10 rounded-full">
+                        <div>
+                            <h2 class="text-lg font-semibold">{{ other_user.get_full_name }}</h2>
+                            <p class="text-sm text-gray-500">@{{ other_user.username }}</p>
+                        </div>
+                    {% else %}
+                        <span class="material-icons text-blue-600 text-2xl">folder_special</span>
+                        <div>
+                            <h2 class="text-lg font-semibold">{{ project.title }}</h2>
+                            <p class="text-sm text-gray-500">{% trans "Project Chat" %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="chat-messages" class="h-[500px] overflow-y-auto p-4 space-y-4">
+                {% for message in messages %}
+                <div class="flex {% if message.sender == request.user %}justify-end{% endif %} mb-4">
+                    {% if message.sender != request.user %}
+                    <div class="flex-shrink-0 mr-3">
+                        {% if message.sender.profile.avatar %}
+                            <img src="{{ message.sender.profile.avatar.url }}" alt="{{ message.sender.username }}" 
+                                 class="w-8 h-8 rounded-full">
+                        {% else %}
+                            <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                                <span class="material-icons text-gray-600">person</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="{% if message.sender == request.user %}
+                               bg-blue-600 text-white
+                               {% else %}
+                               bg-gray-200 text-gray-800
+                               {% endif %}
+                               rounded-lg px-4 py-2 max-w-[70%]">
+                        {% if chat_type == 'project' and message.sender != request.user %}
+                        <p class="text-xs {% if message.sender == request.user %}text-blue-200{% else %}text-gray-600{% endif %} mb-1">
+                            {{ message.sender.username }}
+                        </p>
+                        {% endif %}
+                        
+                        <p class="break-words">{{ message.content }}</p>
+                        
+                        {% if message.attachment %}
+                            {% if message.attachment_type == 'IMAGE' %}
+                                <div class="mt-2 relative group">
+                                    <img src="{{ message.attachment.url }}" alt="Attached image" 
+                                         class="rounded-lg max-w-full cursor-pointer hover:opacity-90"
+                                         onclick="openImagePreview(this.src)">
+                                    <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <a href="{{ message.attachment.url }}" download 
+                                           class="bg-black bg-opacity-50 text-white p-1 rounded-full hover:bg-opacity-70">
+                                            <span class="material-icons text-sm">download</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% elif message.attachment_type == 'VIDEO' %}
+                                <div class="mt-2">
+                                    <video controls class="rounded-lg max-w-full">
+                                        <source src="{{ message.attachment.url }}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
+                            {% else %}
+                                <a href="{{ message.attachment.url }}" target="_blank" 
+                                   class="mt-2 flex items-center text-sm hover:underline group">
+                                    <span class="material-icons mr-1">
+                                        {% if message.attachment_name|lower|endswith:'.pdf' %}picture_as_pdf
+                                        {% elif message.attachment_name|lower|endswith:'.doc' or message.attachment_name|lower|endswith:'.docx' %}description
+                                        {% elif message.attachment_name|lower|endswith:'.xls' or message.attachment_name|lower|endswith:'.xlsx' %}table_chart
+                                        {% else %}insert_drive_file{% endif %}
+                                    </span>
+                                    <span>{{ message.attachment_name }}</span>
+                                    <span class="material-icons ml-1 opacity-0 group-hover:opacity-100">download</span>
+                                </a>
+                            {% endif %}
+                        {% endif %}
+
+                        <p class="text-xs {% if message.sender == request.user %}text-blue-200{% else %}text-gray-500{% endif %} mt-1">
+                            {{ message.created_at|date:"g:i A" }}
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Message Input -->
+            <div class="border-t p-4">
+                <form id="message-form" class="space-y-2">
+                    {% csrf_token %}
+                    <div class="flex space-x-4">
+                        <input type="text" name="content" 
+                               class="flex-1 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                               placeholder="Type your message...">
+                        {% if chat_type == 'direct' %}
+                            <input type="hidden" name="recipient_id" value="{{ other_user.id }}">
+                        {% else %}
+                            <input type="hidden" name="project_slug" value="{{ project.slug }}">
+                        {% endif %}
+                        <button type="submit" 
+                                class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
+                            <span class="material-icons">send</span>
+                            <span>Send</span>
+                        </button>
+                    </div>
+                    
+                    <!-- File attachment preview -->
+                    <div id="attachment-preview" class="hidden mt-2">
+                        <div class="flex items-center space-x-2 bg-gray-100 p-2 rounded">
+                            <span class="material-icons text-gray-600">attach_file</span>
+                            <span id="attachment-name" class="text-sm text-gray-600"></span>
+                            <button type="button" onclick="removeAttachment()" 
+                                    class="text-red-600 hover:text-red-700">
+                                <span class="material-icons">close</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- File attachment input -->
+                    <div class="flex items-center space-x-2">
+                        <button type="button" onclick="document.getElementById('attachment').click()" 
+                                class="text-gray-600 hover:text-gray-800">
+                            <span class="material-icons">attach_file</span>
+                        </button>
+                        <input type="file" id="attachment" name="attachment" 
+                               accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                               class="hidden" onchange="handleFileSelect(this)">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div id="image-preview-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
+    <div class="relative">
+        <img id="preview-image" src="" alt="Preview" class="max-h-[90vh] max-w-[90vw]">
+        <button onclick="closeImagePreview()" 
+                class="absolute top-4 right-4 text-white hover:text-gray-300">
+            <span class="material-icons text-3xl">close</span>
+        </button>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageForm = document.getElementById('message-form');
+    const chatMessages = document.getElementById('chat-messages');
+
+    // Scroll to bottom of messages
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    messageForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(messageForm);
+        
+        fetch('{% url "send_message" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'flex justify-end mb-4';
+                
+                let attachmentHtml = '';
+                if (data.message.attachment) {
+                    if (data.message.attachment.type === 'IMAGE') {
+                        attachmentHtml = `
+                            <div class="mt-2 relative group">
+                                <img src="${data.message.attachment.url}" alt="Attached image" 
+                                     class="rounded-lg max-w-full cursor-pointer hover:opacity-90"
+                                     onclick="openImagePreview(this.src)">
+                                <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <a href="${data.message.attachment.url}" download 
+                                       class="bg-black bg-opacity-50 text-white p-1 rounded-full hover:bg-opacity-70">
+                                        <span class="material-icons text-sm">download</span>
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                    } else if (data.message.attachment.type === 'VIDEO') {
+                        attachmentHtml = `
+                            <div class="mt-2">
+                                <video controls class="rounded-lg max-w-full">
+                                    <source src="${data.message.attachment.url}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                        `;
+                    } else {
+                        const fileIcon = getFileIcon(data.message.attachment.name);
+                        attachmentHtml = `
+                            <a href="${data.message.attachment.url}" target="_blank" 
+                               class="mt-2 flex items-center text-sm hover:underline group">
+                                <span class="material-icons mr-1">${fileIcon}</span>
+                                <span>${data.message.attachment.name}</span>
+                                <span class="material-icons ml-1 opacity-0 group-hover:opacity-100">download</span>
+                            </a>
+                        `;
+                    }
+                }
+
+                messageDiv.innerHTML = `
+                    <div class="bg-blue-600 text-white rounded-lg px-4 py-2 max-w-[70%]">
+                        <p class="break-words">${data.message.content}</p>
+                        ${attachmentHtml}
+                        <p class="text-xs text-blue-200 mt-1">${data.message.created_at}</p>
+                    </div>
+                `;
+                
+                chatMessages.appendChild(messageDiv);
+                messageForm.reset();
+                document.getElementById('attachment-preview').classList.add('hidden');
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+    });
+});
+
+function handleFileSelect(input) {
+    const file = input.files[0];
+    if (file) {
+        document.getElementById('attachment-name').textContent = file.name;
+        document.getElementById('attachment-preview').classList.remove('hidden');
+    }
+}
+
+function removeAttachment() {
+    document.getElementById('attachment').value = '';
+    document.getElementById('attachment-preview').classList.add('hidden');
+}
+
+function openImagePreview(src) {
+    document.getElementById('preview-image').src = src;
+    document.getElementById('image-preview-modal').classList.remove('hidden');
+}
+
+function closeImagePreview() {
+    document.getElementById('image-preview-modal').classList.add('hidden');
+}
+
+function endsWith(str, suffix) {
+    return str.toLowerCase().endsWith(suffix.toLowerCase());
+}
+
+function getFileIcon(filename) {
+    if (filename.toLowerCase().endsWith('.pdf')) return 'picture_as_pdf';
+    if (filename.toLowerCase().endsWith('.doc') || filename.toLowerCase().endsWith('.docx')) return 'description';
+    if (filename.toLowerCase().endsWith('.xls') || filename.toLowerCase().endsWith('.xlsx')) return 'table_chart';
+    return 'insert_drive_file';
+}
+</script>
+{% endblock %} 
